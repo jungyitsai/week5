@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vue-loading-overlay@3.3.2/dist/vue-loading.css">
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+    <script src="https://kit.fontawesome.com/6ba03e0123.js" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vee-validate/3.3.0/vee-validate.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-loading-overlay@3.3.2/dist/vue-loading.min.js"></script>
+
+</head>
+
+<body>
+    <div id="app" class="container mt-3">
+        <loading :active.sync="isLoading" :is-full-page="fullPage"></loading>
+        <carts :carts="carts" :total-cost="totalCost" @delete-item="deleteItems" @update-quantity="updateQuantity">
+        </carts>
+        <userforms :api="api" :userinfo="userInfo" @submit-form="submitForm"></userforms>
+        <products :products="products" @add-to-carts="addToCarts"></products>
+
+        <!-- Modal -->
+        <div class="modal fade" id="alertModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        此商品已經在購物車中
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+
+        import products from './products.js';
+        import carts from './carts.js';
+        import userforms from './userforms.js';
+
+        // 將 VeeValidate input 驗證工具載入 作為全域註冊
+        Vue.component('validation-provider', VeeValidate.ValidationProvider);
+
+        // 將 VeeValidate 完整表單 驗證工具載入 作為全域註冊
+        Vue.component('validation-observer', VeeValidate.ValidationObserver);
+
+        Vue.component('products', products);
+        Vue.component('carts', carts);
+        Vue.component('userforms', userforms);
+
+        // Class 設定檔案
+        VeeValidate.configure({
+            classes: {
+                valid: 'is-valid',
+                invalid: 'is-invalid',
+            }
+        });
+
+        Vue.use(VueLoading);
+        Vue.component('loading', VueLoading);
+
+        new Vue({
+            el: "#app",
+            data: {
+                tempProduct: {},
+                products: [],
+                carts: [],
+                totalCost: 0,
+                userInfo: {},
+                api: {
+                    uuid: '83e5dddb-dc92-4272-9ddd-488cfb6ae1e0',
+                    apiPath: 'https://course-ec-api.hexschool.io/',
+                },
+                userInfo: {},
+                isLoading: true,
+                fullPage: true,
+            },
+            created() {
+                this.getProducts();
+                this.getCarts();
+            },
+            methods: {
+                getProducts() {
+                    let api = `${this.api.apiPath}api/${this.api.uuid}/ec/products`;
+                    axios.get(api).then(res => {
+                        console.log(res);
+                        this.products = res.data.data;
+                        this.isLoading = false;
+                    }).catch(err => {
+                        console.log(err);
+                    });
+                },
+                getCarts() {
+                    let api = `${this.api.apiPath}api/${this.api.uuid}/ec/shopping`;
+                    axios.get(api).then(res => {
+                        console.log(res.data.data);
+                        this.carts = res.data.data;
+                        this.updateTotalCost();
+                    }).catch(err => {
+                        console.log(err);
+                    })
+                },
+                addToCarts(item) {
+                    // console.log(item);                    
+                    let api = `${this.api.apiPath}api/${this.api.uuid}/ec/shopping`;
+                    let data = {
+                        product: item.id,
+                        quantity: 1,
+                    };
+                    this.isLoading = true;
+                    axios.post(api, data).then(res => {
+                        // console.log(res);
+                        this.getCarts();
+                        this.isLoading = false;
+                    }).catch(err => {
+                        // console.log(err.response);
+                        if (err.response.data.errors[0] === "該商品已放入購物車當中。") {
+                            $('#alertModal').modal('show');
+                        }
+                    });
+                },
+                updateQuantity(item_id, item_quantity) {
+                    console.log('updateQuantity', item_id, item_quantity);
+                    let api = `${this.api.apiPath}api/${this.api.uuid}/ec/shopping`;
+                    let data = {
+                        product: item_id,
+                        quantity: item_quantity,
+                    };
+                    this.isLoading = true;
+                    axios.patch(api, data).then(res => {
+                        console.log(res);
+                        this.getCarts();
+                        this.isLoading = false;
+                    }).catch(err => {
+                        console.log(err);
+                    });
+                },
+                deleteItems(item_id) {
+                    console.log(item_id);
+                    this.isLoading = true;
+                    if (item_id === 'all') {
+                        let api = `${this.api.apiPath}api/${this.api.uuid}/ec/shopping/all/product`;
+                        axios.delete(api).then(res => {
+                            console.log(res);
+                            this.getCarts();
+                            this.isLoading = false;
+                        }).catch(err => {
+                            console.log(err);
+                        });
+                    }
+                    else {
+                        let api = `${this.api.apiPath}api/${this.api.uuid}/ec/shopping/${item_id}`;
+                        let data = {
+                            product: item_id,
+                        };
+                        axios.delete(api, data).then(res => {
+                            console.log(res);
+                            this.getCarts();
+                            this.isLoading = false;
+                        }).catch(err => {
+                            console.log(err);
+                        })
+                    }
+                    this.updateTotalCost();
+                },
+                updateTotalCost() {
+                    this.totalCost = 0;
+                    this.carts.forEach(item => {
+                        this.totalCost += item.product.price * item.quantity;
+                    });
+                },
+                submitForm(user_info) {
+                    console.log('submit-form', user_info)                    
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
