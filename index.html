@@ -29,9 +29,9 @@
 
     <style>
         body {
-            padding-top: 70px;
-            padding-bottom: 70px;
+            padding-top: 50px;
         }
+
     </style>
 </head>
 
@@ -86,8 +86,20 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div>        
     </div>
+
+    <!-- Footer -->
+    <footer class="page-footer font-small bg-light sticky-bottom mt-3">
+
+        <!-- Copyright -->
+        <div class="footer-copyright text-center py-3">© 2020 Copyright:
+            JungYi, Tsai
+        </div>
+        <!-- Copyright -->
+
+    </footer>
+    <!-- Footer -->
 
     <script type="module">
 
@@ -186,7 +198,7 @@
                         }).catch(err => {
                             // console.log(err.response);                            
                         });
-                    }                    
+                    }
                 },
                 updateQuantity(item_id, item_quantity) {
                     console.log('updateQuantity', item_id, item_quantity);
