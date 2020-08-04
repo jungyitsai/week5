@@ -71,7 +71,7 @@
             </carts>
             <userforms :api="api" :userinfo="userInfo" @submit-form="submitForm"></userforms>
         </div>
-        
+
 
         <!-- Modal -->
         <div class="modal fade" id="alertModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
@@ -159,23 +159,34 @@
                     })
                 },
                 addToCarts(item) {
-                    // console.log(item);                    
-                    let api = `${this.api.apiPath}api/${this.api.uuid}/ec/shopping`;
-                    let data = {
-                        product: item.id,
-                        quantity: 1,
-                    };
-                    this.isLoading = true;
-                    axios.post(api, data).then(res => {
-                        // console.log(res);
-                        this.getCarts();
-                        this.isLoading = false;
-                    }).catch(err => {
-                        // console.log(err.response);
-                        if (err.response.data.errors[0] === "該商品已放入購物車當中。") {
-                            $('#alertModal').modal('show');
+                    // console.log(item);
+                    this.getCarts();
+                    // console.log(this.carts);
+                    let is_in_carts = false;
+                    this.carts.forEach(carts_item => {
+                        if (carts_item.product.id === item.id) {
+                            is_in_carts = true;
                         }
                     });
+
+                    if (is_in_carts) {
+                        $('#alertModal').modal('show');
+                    }
+                    else {
+                        let api = `${this.api.apiPath}api/${this.api.uuid}/ec/shopping`;
+                        let data = {
+                            product: item.id,
+                            quantity: 1,
+                        };
+                        this.isLoading = true;
+                        axios.post(api, data).then(res => {
+                            // console.log(res);
+                            this.getCarts();
+                            this.isLoading = false;
+                        }).catch(err => {
+                            // console.log(err.response);                            
+                        });
+                    }                    
                 },
                 updateQuantity(item_id, item_quantity) {
                     console.log('updateQuantity', item_id, item_quantity);
