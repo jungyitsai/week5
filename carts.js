@@ -1,6 +1,6 @@
 export default {
     template: `
-    <div>
+    <div class="mt-4">
         <button type="button" class="btn btn-outline-danger mb-2 float-right" @click="deleteItem('all')">刪除所有品項</button>
         <table class="table">
             
