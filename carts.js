@@ -17,7 +17,7 @@ export default {
                 <tr v-for="(item, index) in carts" :key="item.product.id">
                     <td>
                         <button type="button" class="btn btn-outline-danger" @click="deleteItem(item.product.id)">
-                            <i class="far fa-trash-alt text-danger"></i>
+                            <i class="far fa-trash-alt"></i>
                         </button>
                     </td>
                     <td>{{ item.product.title }}</td>
