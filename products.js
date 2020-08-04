@@ -14,7 +14,7 @@ export default {
                     </div>
                 </div>
                 <div class="card-footer d-flex">
-                    <button type="button" class="btn btn-outline-secondary btn-sm">更多資訊</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" @click="showItemInfo(item)">更多資訊</button>
                     <button type="button" class="btn btn-outline-danger btn-sm ml-auto" @click="addToCarts(item)">加入購物車</button>
                 </div>
             </div>
@@ -29,6 +29,9 @@ export default {
     methods: {
         addToCarts(item) {
             this.$emit("add-to-carts", item);
+        },
+        showItemInfo(item) {
+            this.$emit("show-item-info", item);
         }
     }
 }
