@@ -5,19 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.1/css/bootstrap.min.css"
+        integrity="sha384-VCmXjywReHh4PwowAiWNagnWcLhlEJLA5buUprzK8rxFgeH0kww/aWY76TfkUoSX" crossorigin="anonymous">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vue-loading-overlay@3.3.2/dist/vue-loading.css">
 
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
         crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
         crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.1/js/bootstrap.min.js"
+        integrity="sha384-XEerZL0cuoUbHE4nZReLT7nx9gQrQreJekYhJD9WNWhH8nEW+0c5qq7aIo2Wl30J"
         crossorigin="anonymous"></script>
 
     <script src="https://kit.fontawesome.com/6ba03e0123.js" crossorigin="anonymous"></script>
@@ -63,7 +65,7 @@
         </nav>
 
         <div v-show="showProducts">
-            <products :products="products" @add-to-carts="addToCarts" @show-item-info="showItemInfo"></products>
+            <products :products="products" :status="status" @add-to-carts="addToCarts" @show-item-info="showItemInfo"></products>
         </div>
 
         <div v-show="!showProducts">
@@ -91,24 +93,24 @@
         <!-- Product Modal -->
         <div class="modal fade" id="productModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="exampleModalLabel">{{ tempProduct.title }}</h5>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                  </button>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">{{ tempProduct.title }}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        {{ tempProduct.content }}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">關閉</button>
+                        <button type="button" class="btn btn-primary">加入購物車</button>
+                    </div>
                 </div>
-                <div class="modal-body">
-                  {{ tempProduct.content }}
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">關閉</button>
-                  <button type="button" class="btn btn-primary">加入購物車</button>
-                </div>
-              </div>
             </div>
-          </div>
-        
+        </div>
+
     </div>
 
     <!-- Footer -->
@@ -167,6 +169,11 @@
                 fullPage: true,
                 showProducts: true,
                 alertModalMsg: "",
+                status: {
+                    loadingItem: {
+                        id: '',
+                    }
+                },
             },
             created() {
                 this.getProducts();
@@ -186,16 +193,16 @@
                 getCarts() {
                     let api = `${this.api.apiPath}api/${this.api.uuid}/ec/shopping`;
                     axios.get(api).then(res => {
-                        console.log(res.data.data);
+                        console.log('getCarts', res.data.data);
                         this.carts = res.data.data;
-                        this.updateTotalCost();
+                        this.updateTotalCost();                        
                     }).catch(err => {
                         console.log(err);
                     })
                 },
                 addToCarts(item) {
-                    // console.log(item);
-                    this.getCarts();
+                    console.log('addToCarts');
+                    // console.log(item);                    
                     // console.log(this.carts);
                     let is_in_carts = false;
                     this.carts.forEach(carts_item => {
@@ -214,11 +221,14 @@
                             product: item.id,
                             quantity: 1,
                         };
-                        this.isLoading = true;
+                        this.$set(this.status.loadingItem, 'id', item.id);
                         axios.post(api, data).then(res => {
                             // console.log(res);
                             this.getCarts();
-                            this.isLoading = false;
+                            this.$set(this.status.loadingItem, 'id', '');
+                            this.alertModalMsg = `${item.title} 成功加入購物車囉`;
+                            $('#alertModal').modal('show');
+                            
                         }).catch(err => {
                             // console.log(err.response);                            
                         });
@@ -293,17 +303,19 @@
                 showItemInfo(item) {
                     console.log(item.id);
                     // show product modal
+                    this.$set(this.status.loadingItem, 'id', item.id);
                     let api = `${this.api.apiPath}api/${this.api.uuid}/ec/product/${item.id}`;
                     axios.get(api)
                         .then(res => {
                             console.log(res);
-                            this.tempProduct = Object.assign({}, res.data.data);
+                            this.tempProduct = Object.assign({}, res.data.data);                            
+                            this.$set(this.status.loadingItem, 'id', '');
                             $('#productModal').modal('show');
-                            
+                        
                         }).catch( err => {
                             console.log(err);
                         });
-                    
+
                 }
             }
         });

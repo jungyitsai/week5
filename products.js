@@ -14,13 +14,19 @@ export default {
                     </div>
                 </div>
                 <div class="card-footer d-flex">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" @click="showItemInfo(item)">更多資訊</button>
-                    <button type="button" class="btn btn-outline-danger btn-sm ml-auto" @click="addToCarts(item)">加入購物車</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" @click="showItemInfo(item)" :disabled="status.loadingItem.id === item.id">                                                                    
+                        更多資訊
+                        <span v-if="status.loadingItem.id === item.id" class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm ml-auto" @click="addToCarts(item)" :disabled="status.loadingItem.id === item.id">
+                        加入購物車
+                        <span v-if="status.loadingItem.id === item.id" class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+                    </button>
                 </div>
             </div>
         </div>
     </div>`,
-    props: ['products'],
+    props: ['products', 'status'],
     data() {
         return {
             tempProduct: {},
